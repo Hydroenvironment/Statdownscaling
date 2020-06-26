@@ -1,14 +1,18 @@
 ###############################################################################
 DOWNSCALLING ESTADÍSTICO DE DATOS CLIMÁTICOS USANDO MAPEO DE QUANTILES (QMAP)##
 ###############################################################################
-
+Referencias:
+Technical Note: Downscaling RCM precipitation to the station scale using statistical transformations – a comparison of methods 
+https://www.hydrol-earth-syst-sci.net/16/3383/2012/
+Qmap package information - CRAN:
+https://cran.r-project.org/web/packages/qmap/qmap.pdf
 #==============================================================================
 # INSTALAR Y CARGAR LOS PAQUETES NECESARIOS
 setwd("C:/Users/Julio/Documents/INVESTIGACION/R SCRIPTS/Downscaling/Diario")
 getwd()
 ls()
 rm(list=ls())
-
+por ejemplo:
 #install.packages(c("qmap", "zoo", "latticeExtra"))
 
 # CARGAR LAS LIBRERIAS
