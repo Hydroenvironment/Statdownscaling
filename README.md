@@ -1,5 +1,5 @@
 # Statistical Downscaling of climate data
-[![R build status](https://img.shields.io/travis/GitbookIO/gitbook.svg)](https://github.com/Hydroenvironment/CMIP6-WORLDCLIM-HANDLING/actions)
+[![R build status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/Hydroenvironment/CMIP6-WORLDCLIM-HANDLING/actions)
 [![Project Status: Active – The project has reached a stable, usable
 state and is being actively
 developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
