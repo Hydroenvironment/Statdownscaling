@@ -13,7 +13,7 @@ getwd()
 ls()
 rm(list=ls())
 #por ejemplo:
-#install.packages(c("qmap", "zoo", "latticeExtra"))
+#install.packages(c("qmap", "zoo","latticeExtra"))
   
 # CARGAR LAS LIBRERIAS
 library(qmap)
@@ -30,7 +30,7 @@ OBS_hist <- read.zoo("0Estacion_C2.csv", header = TRUE, sep = ",",
 GCM_model <- read.zoo("ACCESS1-0-RCP45.csv", header = TRUE, sep = ",", 
                       format = "%Y-%m-%d")
 
-# Ajustando la serie hasta el final de la data histórica
+# Ajustando la serie hasta el final de la data hist?rica
 GCM_hist <- window(GCM_model, end = "2039-12-31") 
 
 data_at <- cbind(OBS_hist, GCM_model)
@@ -77,7 +77,7 @@ ecdfplot(~ OBS_hist +  GCM_hist,
          lwd = 2, col = c(1, 2),main="CDF PLOT OF DAILY OBS. VS GCM DATA DURING RAINFALL SEASON",ylab = "Empirical CDF", xlab = "Daily GCM (red) and Observed (black) data")
 
 #============================================================================
-# APLICACIÓN DE LA TÉCNICA DE QUANTILE MAPPING (EMPÍRICO)
+# APLICACIÓN DE LA TÉCNICA DE QUANTILE MAPPING (MÉTODO EMPÍRICO)
 
 data_wt$gcm_downscaled <- data_wt$GCM_hist
 
@@ -108,7 +108,7 @@ for(i in 1:4) {
 }
 
 #============================================================================
-# GRÁFICOS DE SERIES TEMPORALES
+# GR?FICOS DE SERIES TEMPORALES
 plot(data_wt, plot.type = "single", col = c(1, 2, 4),  lwd = 1,xlab = "Years", ylab = "pp (mm/day)")
 title(expression(bold("OBSERVED DAILY HISTORICAL DATA vs" * phantom(" GCM DAILY DATA ") * phantom("vs DOWNSCALED GCM DAILY DATA"))), col.main = "black",cex.main=0.9)
 title(expression(bold(phantom("OBSERVED DAILY HISTORICAL DATA vs ") * " GCM DAILY DATA " * phantom("vs DOWNSCALED GCM DAILY DATA"))), col.main = "red",cex.main=0.9)
@@ -156,6 +156,15 @@ data_at$GCM_downscaled <- data_wt$gcm_downscaled
 View(data_at)
 View(data_wt)
 
+plot(data_at, plot.type = "single", col = c(1, 2, 4), lwd = 1, 
+     main = c("OBS vs GCM VS GCM DOWNSCALED"),
+     ylab = "pp (mm/mes)", xlab = "years")
+
+# ..............................................................................
+# GUARDAR DATOS ESCALADOS EN UN ARCHIVO .CSV
+
+write.zoo(data_at[,3],file = "OUT.csv", sep = ",")
+print("El proceso se ha completado satisfactoriamente!")
 plot(data_at, plot.type = "single", col = c(1, 2, 4), lwd = 1, 
      main = c("OBS vs GCM VS GCM DOWNSCALED"),
      ylab = "pp (mm/mes)", xlab = "years")
