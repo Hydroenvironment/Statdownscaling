@@ -1,5 +1,5 @@
-# Librerias
-library(tidyverse)
+# Packages to be used
+library(dplyr)
 library(lubridate)
 library(qmap)
 library(zoo)
@@ -7,8 +7,8 @@ library(latticeExtra)
 library(xlsx)
 library(readxl)
 
-# Cambiar para cada estacion
-setwd('C:\\Users\\Julio\\Documents\\INVESTIGACION\\R SCRIPTS\\Downscaling\\Diario\\GEE Station data\\downq')
+# Indicar la carpeta que contiene a las estaciones
+setwd('D:/downscaling/')
 
 # llamamos a los archivos historicos
 data_pr_his <- read_excel("Histórico_Est.xlsx") 
@@ -46,17 +46,22 @@ fecha_fin <- c(fecha_fin_1, fecha_fin_2, fecha_fin_3)
 #============================================================================
 
 # Funci?n para generar la regionalizacion, para cada variable y para un solo bloque de tiempo
+
 ds <- function(time_ini_his, time_fin_his, time_ini, time_fin, data_his, data_model, var){
   
+  #time_ini <- as.Date('2010-01-01')
+  #time_fin <- as.Date('2039-12-31')
+  # time_ini <- as.Date('2040-01-01')
+  # time_fin <- as.Date('2069-12-31')
   # time_ini <- as.Date('2070-01-01')
   # time_fin <- as.Date('2099-12-31')
   # time_ini_his <- as.Date('1980-01-01')
   # time_fin_his <- as.Date('2009-12-31')
   # data_his <- var_hist
   # data_model <- var_model
-  # var = 'MAX'
+  # var = 'PR'
   
-  # Creamos vecotores con la informacion de los modelos
+  # Creamos vectores con la informacion de los modelos
   #name_his <- sort(names(data_his)[which(substring(names(data_his),1,3)=='his')] )
   name_mod <- sort(names(data_model)[which(substring(names(data_model),1,3)=='rcp')] )
   n_model <- length(name_mod)
@@ -70,19 +75,23 @@ ds <- function(time_ini_his, time_fin_his, time_ini, time_fin, data_his, data_mo
       filter(FECHA >= time_ini_his & FECHA <= time_fin_his)
     colnames(var_hist_2) <- c('isodate','hist')
     
+    var_hist_2 <- var_hist_2 %>% 
+      full_join(
+        data.frame(isodate = seq(from=time_ini_his, to=time_fin_his, by ='day')),
+        by = 'isodate') 
+    
     # configurar la variable del modelo
     var_model_2 <- data_model[, c(which(names(data_model) == 'isodate'),
                                   which(names(data_model) == name_mod[j]))] %>% 
       filter(isodate >= time_ini & isodate <= time_fin)
     colnames(var_model_2) <- c('isodate','mode')
     
-    OBS_hist <- var_hist_2 %>% 
-      rename(OBS_hist = hist) %>% 
+    var_model_2 <- var_model_2 %>% 
+      filter(isodate <= time_fin & isodate >= time_ini) %>% 
       full_join(
-        data.frame(isodate = seq(from=time_ini_his, to=time_fin_his, by ='day')),
-        by = 'isodate') %>% 
-      filter( !(month(isodate)== 2 & day(isodate)== 29)) 
-    
+        data.frame(isodate = seq(from=time_ini, to=time_fin, by ='day')),
+        by = 'isodate') 
+
     # aqui completo valores faltantes con 0.1
     if (var=='PR') {
       OBS_hist <- OBS_hist %>%
@@ -93,12 +102,20 @@ ds <- function(time_ini_his, time_fin_his, time_ini, time_fin, data_his, data_mo
         mutate(OBS_hist = ifelse(is.na(OBS_hist),15,OBS_hist))
     }
     
-    GCM_model <- var_model_2 %>% 
-      filter(isodate <= time_fin & isodate >= time_ini) %>% 
-      full_join(
-        data.frame(isodate = seq(from=time_ini, to=time_fin, by ='day')),
-        by = 'isodate') %>% 
-      filter( !(month(isodate)== 2 & day(isodate)== 29))  
+    # forzamos a que coincida el numero de dias para ambas series
+    if (nrow(var_hist_2) > nrow(var_model_2)) {
+      var_model_2 <- rbind(var_model_2, data.frame(isodate=Sys.Date(),mode=var_model_2[nrow(var_model_2),2]))
+    } 
+    if (nrow(var_model_2) > nrow(var_hist_2)) {
+      var_model_2 <- var_model_2 %>% 
+        slice(1:nrow(var_hist_2))
+    } 
+    
+    # creamos las variables a usar (solo para seguir el script de origen)
+    OBS_hist <- var_hist_2 %>% 
+      rename(OBS_hist = hist) 
+    
+    GCM_model <- var_model_2
     
     # aqui completo valores faltantes con 0.1
     if (var=='PR') {
@@ -111,10 +128,7 @@ ds <- function(time_ini_his, time_fin_his, time_ini, time_fin, data_his, data_mo
     }
     
     GCM_hist <- GCM_model
-    
-    # en esta linea agrego un 1 de manera arbitraria solo para que corra el ejemplo
-    #GCM_hist[940,2] <-1
-    
+
     data_at <- cbind(OBS_hist, GCM_model = GCM_model[,2]) %>% 
       read.zoo()
     data_wt <- cbind(OBS_hist, GCM_hist = GCM_hist[,2]) %>% 
@@ -125,10 +139,10 @@ ds <- function(time_ini_his, time_fin_his, time_ini, time_fin, data_his, data_mo
     
     data_wt$gcm_downscaled <- data_wt$GCM_hist
     
-    seasons_by_year <- list(c("December","January","February"), 
-                            c("March","April","May"), 
-                            c("June","July","August"),
-                            c("September","October","November"))
+    seasons_by_year <- list(c("Diciembre","Enero","Febrero"), 
+                            c("Marzo","Abril","Mayo"), 
+                            c("Junio","Julio","Agosto"),
+                            c("Setiembre","Octubre","Noviembre"))
     
     seasonal_qm_fit_model <- list()
     
@@ -173,20 +187,20 @@ ds <- function(time_ini_his, time_fin_his, time_ini, time_fin, data_his, data_mo
   # agregamos losnombres correctas de las columnas
   colnames(df_mod) <- name_mod
   # asignamos la columna de tiempo
-  df_out<- data.frame(isodate = seq(from=time_ini, to=time_fin, by ='day')) %>% 
-    filter(!(month(isodate)==2 & day(isodate)==29)) %>% 
+  df_empty<- data.frame(isodate = seq(from=time_ini, to=time_fin, by ='day'))
+   if (nrow(df_mod)> nrow(df_empty)) {
+     df_mod <- df_mod %>% 
+       slice(1:nrow(df_empty))
+   }
+  
+  df_out <- df_empty %>% 
     cbind(df_mod)
   
-  # completando los dias bisiestos por la semisuma del dia anterior y superior
-  df_out2 <- data.frame(isodate = seq(from=time_ini, to=time_fin, by ='day')) %>% 
-    full_join(df_out, by='isodate') %>% 
-    mutate_if(~ any(is.na(.x)),~ if_else(is.na(.x),(lead(.x)+lag(.x))/2,.x))
-  
-  return(df_out2)
+  return(df_out)
   }
 
 #============================================================================
-files_eliminar <- c("down3.R", "Histórico_Est.xlsx", "Tmáx_esta.xlsx", "Tmín_esta.xlsx")
+files_eliminar <- c("down.R","down2.R","down3.R", "Histórico_Est.xlsx", "Tmáx_esta.xlsx", "Tmín_esta.xlsx")
 estaciones <- setdiff(dir(),files_eliminar)
 
 # Bucle para cada estacion
@@ -222,7 +236,7 @@ for (z in 1:3) {
 
   if (vec_var_3[z]=='MIN') {
     # Seleccionamos el archivo de una variable
-    var_hist <- data_tmin_his[,c('FECHA',estaciones[estacion])] %>% 
+    var_hist <- data_tmax_his[,c('FECHA',estaciones[estacion])] %>% 
       mutate(FECHA= as.Date(FECHA))
     
     dif.273 <- function(x, na.rm=FALSE) (x-273.15)
@@ -240,7 +254,7 @@ for (z in 1:3) {
 
   # Exportamos
   name_file_out <- paste0(estaciones[estacion],'/',estaciones[estacion],'_',vec_var_3[z],'.xls')
-  
+
   write.xlsx(list_time[[1]], file = name_file_out,row.names = F,
              sheetName = paste0(fecha_in_1,'-',fecha_fin_1), append = FALSE)
   
