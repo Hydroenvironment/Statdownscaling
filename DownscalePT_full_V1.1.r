@@ -11,13 +11,13 @@
 #License details: https://www.gnu.org/licenses/gpl-3.0.en.html
 #About quantile mapping technique (Gudmundsson et al., 2012): https://hess.copernicus.org/articles/16/3383/2012/
 
-#' Para este script se necesita:
-#' - 3 archivos de la data observada en la carpeta de trabajo
-#' - 1 carpeta con nombre de la estacion y dentro de ella, 3 archivos
-#'     con la data modelada historica (que coincida con la data observada)
-#'     y 3 archivos con la data modelada a futuro
+#For this script you need:
+#' - 3 files of the observed data in the working folder.
+#1 folder with name of the station and inside it, 3 files with historical modelled data (matching the observed data)
+#3 files with the historical modelled data (matching with the observed data)
+#and 3 files with the future modelled data
 
-# Librerias
+# Required packages:
 library(tidyverse)
 library(lubridate)
 library(qmap)
@@ -25,7 +25,7 @@ library(zoo)
 library(latticeExtra)
 library(readxl)
 
-# Indicar la carpeta que contiene a las estaciones
+# Setting working directory:
 setwd('C:/Users/Julio/Downloads/qmap/qmap')
 
 # llamamos a los archivos historicos
@@ -34,17 +34,17 @@ data_tmax_his <- read_excel("Tmáx_esta.xlsx")
 data_tmin_his <- read_excel("Tmín_esta.xlsx") 
 
 #============================================================================
-# Configurar segun la data
+# Settings according to data structure
 
 ## Numero de variables
 n_var <- 3
 
-## Nombre del archivo de la data modelada que sigue despues del texto 'RCP4585'
+## File name of the modelled data file following the text 'RCP4585'.
 vec_var_2 <- c('TASMAX','TASMIN','PR')
-## Nombre resumen de la variable (recomiendo dejar como esta)
+## Short name of variables
 vec_var_3 <- c('MAX','MIN','PR')
 
-## Fijar las fechas historicas para cada variable
+## Setting historical time intervals
 fecha_in_his_min <- as.Date('1980-01-01')
 fecha_fin_his_min <- as.Date('2019-12-31')
 
@@ -54,7 +54,7 @@ fecha_fin_his_max <- as.Date('2019-12-31')
 fecha_in_his_pr <- as.Date('1980-01-01')
 fecha_fin_his_pr <- as.Date('2016-12-31')
 
-## Fijar las fechas de inicio y fin de la data modelada
+## Setting model time intervals
 fecha_in_min <- as.Date('1950-01-01')
 fecha_fin_min <- as.Date('2099-12-31')
 
@@ -66,7 +66,7 @@ fecha_fin_pr <- as.Date('2099-12-31')
 
 #============================================================================
 
-# Funci?n para generar la regionalizacion, para cada variable y para un solo bloque de tiempo
+# Downscaling function for each variable and for a single time block.
 
 ds <- function(time_ini_his, time_fin_his, time_ini, time_fin, data_his, data_model, data_model_his, var){
   
@@ -93,13 +93,13 @@ ds <- function(time_ini_his, time_fin_his, time_ini, time_fin, data_his, data_mo
     
   data_model <- rbind(data_model_his, data_model)
   
-  # Creamos vectores con la informacion de los modelos
+  # Creating vectors with model datasets
   name_mod <- sort(names(data_model)[which(substring(names(data_model),1,3)=='rcp')] )
   n_model <- length(name_mod)
-  # Creamos df vacios quienes van a contener a los resultados
+  # Generating empty dataframes
   df_mod <- c()
   
-  # Generamos la regionalizaci?n por tipo de proyeccion
+  # Downscaling for each pathway (4.5 and 8.5)
   for (j in 1:n_model) {
     
     # configurar la variable historica
@@ -112,7 +112,7 @@ ds <- function(time_ini_his, time_fin_his, time_ini, time_fin, data_his, data_mo
         data.frame(isodate = seq(from=time_ini_his, to=time_fin_his, by ='day')),
         by = 'isodate') 
     
-    # configurar la variable del modelo
+    # Setting the model variables
     var_model_2 <- data_model[, c(which(names(data_model) == 'isodate'),
                                   which(names(data_model) == name_mod[j]))] %>% 
       filter(isodate >= time_ini & isodate <= time_fin)
@@ -123,13 +123,13 @@ ds <- function(time_ini_his, time_fin_his, time_ini, time_fin, data_his, data_mo
         data.frame(isodate = seq(from=time_ini, to=time_fin, by ='day')),
         by = 'isodate') 
 
-    # creamos las variables a usar (solo para seguir el script de origen)
+    # Creating the variables to be used
     OBS_hist <- var_hist_2 %>% 
       rename(OBS_hist = hist) 
     
     GCM_model <- var_model_2
     
-    # aqui completo valores faltantes 
+    # Filling missing data
     if (var=='PR') {
       OBS_hist <- OBS_hist %>%
         mutate(OBS_hist = ifelse(is.na(OBS_hist),0.1,OBS_hist))
@@ -139,7 +139,7 @@ ds <- function(time_ini_his, time_fin_his, time_ini, time_fin, data_his, data_mo
         mutate(OBS_hist = ifelse(is.na(OBS_hist),16,OBS_hist))
     }
     
-    # aqui completo valores faltantes 
+    # Again, filling missing data
     if (var=='PR') {
       GCM_model <- GCM_model %>%
         mutate(mode = ifelse(is.na(mode),0.1,mode))
@@ -161,7 +161,7 @@ ds <- function(time_ini_his, time_fin_his, time_ini, time_fin, data_his, data_mo
       read.zoo()
     
     #============================================================================
-    # APLICACIÓN DE LA TÉCNICA DE QUANTILE MAPPING (MÉTODO EMPÍRICO)
+    # APPLICATION OF QUANTILE MAPPING (EMPIRICAL METHOD)
     
     seasons_by_year <- list(c("December"), c("January"), c("February"),
                             c("March"), c("April"), c("May"), 
@@ -182,7 +182,7 @@ ds <- function(time_ini_his, time_fin_his, time_ini, time_fin, data_his, data_mo
                              mod = coredata(mod_sl),
                              qstep = 0.001,
                              nboot = 1, 
-                             wet.day = 0, # Adaptado para temperatuas negativas
+                             wet.day = 0, # May be changed in case of temperatures
                              type = "linear")
       
       mod_sl_qmapped <- doQmapQUANT(coredata(mod_sl), qm_fit, type = "linear")
@@ -201,10 +201,10 @@ ds <- function(time_ini_his, time_fin_his, time_ini, time_fin, data_his, data_mo
     
   }
   
-  # agregamos losnombres correctas de las columnas
+  # Add column names
   colnames(df_mod) <- name_mod
   
-  # asignamos la columna de tiempo
+  # Add time column
   df_empty<- data.frame(isodate = seq(from=time_ini, to=time_fin, by ='day'))
 
   df_out <- df_empty %>% 
@@ -221,12 +221,12 @@ estaciones <- setdiff(dir(),files_eliminar)
 n_estacion <- length(estaciones)
 
 for (estacion in 1:n_estacion) {
-# Bucle para que ejecute la regionalizaci?n para cada bloque y los exporte en excel por cada variable
+# Downscaling loop for each block and export to excel for each variable.
 for (z in 1:3) {
   
   if (vec_var_3[z]=='MAX') {
     
-    # Seleccionamos el archivo de una variable
+    # Select the file of a variable
     var_hist <- data_tmax_his[,c('FECHA',estaciones[estacion])] %>% 
       mutate(FECHA= as.Date(FECHA))
     
@@ -252,7 +252,7 @@ for (z in 1:3) {
   }
   
   if (vec_var_3[z]=='MIN') {
-    # Seleccionamos el archivo de una variable
+    # Select the file of a variable
     var_hist <- data_tmin_his[,c('FECHA',estaciones[estacion])] %>% 
       mutate(FECHA= as.Date(FECHA))
     
@@ -279,7 +279,7 @@ for (z in 1:3) {
   }
   
   if (vec_var_3[z]=='PR') {
-    # Seleccionamos el archivo de una variable
+    # Select the file of a variable
     
     var_hist <- data_pr_his[,c('FECHA',estaciones[estacion])] %>% 
       mutate(FECHA= as.Date(FECHA))
@@ -305,7 +305,7 @@ for (z in 1:3) {
                     var = 'PR')
   }
   
-  # Exportamos
+  # Exporting data
   name_file_out <- paste0(estaciones[estacion],'/',estaciones[estacion],'_',vec_var_3[z],'.csv')
 
   write.csv(list_time, file = name_file_out,row.names = F)
