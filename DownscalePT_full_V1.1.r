@@ -6,10 +6,15 @@
 #Author: Julio Montenegro Gambini, P.E. ASCE, M.Sc.,
 #PhD fellow - Technische Universiteit Delft (TU Delft), Netherlands.
 
-#Current version: 1.0
-#This script is strictly under license GPLv3
-#License details: https://www.gnu.org/licenses/gpl-3.0.en.html
-#About quantile mapping technique (Gudmundsson et al., 2012): https://hess.copernicus.org/articles/16/3383/2012/
+#Current version: 1.1
+
+# © Copyright 2021 Julio Montenegro.
+# This script is strictly under license GPLv3
+# License details: https://www.gnu.org/licenses/gpl-3.0.en.html
+
+# Please, when using this script, cite as: "Montenegro, J. (2021). Statistical
+# downscaling of daily climate data using quantile mapping technique with 
+# NASA-NEX GDDP source "
 
 #For this script you need:
 #' - 3 files of the observed data in the working folder.
