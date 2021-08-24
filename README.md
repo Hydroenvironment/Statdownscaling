@@ -6,7 +6,7 @@ developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.re
 [![License](https://img.shields.io/badge/license-GPL--3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 [![CMIP6-WORLDCLIM-HANDLING badge](https://img.shields.io/badge/overviewR-ready%20to%20use-brightgreen)](https://github.com/Hydroenvironment/CMIP6-WORLDCLIM-HANDLING/)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/dwyl/esta/issues)
-![Optional Text](https://github.com/Hydroenvironment/CMIP6-WORLDCLIM-HANDLING/blob/master/new%20folder/cmip6%20logo.png)
+![Optional Text](https://github.com/Hydroenvironment/Statdownscaling/blob/master/Qmapping.png)
 # CMIP6-WORLDCLIM-HANDLING
 
 🌏 Statistical downscaling is a two-step process consisting of i) the development of statistical relationships between local climate variables (e.g., surface air temperature and precipitation) and large-scale predictors (e.g., pressure fields), and ii) the application of such relationships to the output of global climate model experiments to simulate local climate characteristics in the future.
