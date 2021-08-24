@@ -3,6 +3,14 @@
 # QUANTILE MAPPING (QPM)TECHNIQUE                                              #
 ################################################################################
 
+#Author: Julio Montenegro Gambini, P.E. ASCE, M.Sc.,
+#PhD fellow - Technische Universiteit Delft (TU Delft), Netherlands.
+
+#Current version: 1.0
+#This script is strictly under license GPLv3
+#License details: https://www.gnu.org/licenses/gpl-3.0.en.html
+#About quantile mapping technique (Gudmundsson et al., 2012): https://hess.copernicus.org/articles/16/3383/2012/
+
 #' Para este script se necesita:
 #' - 3 archivos de la data observada en la carpeta de trabajo
 #' - 1 carpeta con nombre de la estacion y dentro de ella, 3 archivos
