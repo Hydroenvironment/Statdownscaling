@@ -197,7 +197,7 @@ for(ind in 1:1){
       #c("Junio"), c("Julio"), c("Agosto"),
       #c("Septiembre"), c("Octubre"), c("Noviembre"))
       
-      for(i in 1:4) {
+      for(i in 1:12) {
         
         obs_sl <- data_hist[months(time(data_hist)) %in% seasons_by_year[[i]]]
         mod_sl <- data_mod[months(time(data_mod)) %in% seasons_by_year[[i]]]
